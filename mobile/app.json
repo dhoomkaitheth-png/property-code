@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "Uttarakhand Real Estate",
+    "slug": "uttarakhand-realestate",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#1a5276"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.uttarakhand.realestate"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1a5276"
+      },
+      "package": "com.uttarakhand.realestate",
+      "config": {
+        "googleMaps": {
+          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
+        }
+      }
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Uttarakhand Real Estate to use your location."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Uttarakhand Real Estate to access your photos."
+        }
+      ]
+    ],
+    "extra": {
+      "apiUrl": "http://localhost:5000/api"
+    }
+  }
+}

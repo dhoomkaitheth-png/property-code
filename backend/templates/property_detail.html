@@ -1,0 +1,474 @@
+{% extends "base.html" %}
+{% block title %}{{ property.title }} - Uttarakhand Real Estate{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+{% endblock %}
+{% block content %}
+
+<div class="container mt-4">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      <li class="breadcrumb-item"><a href="/properties">Properties</a></li>
+      <li class="breadcrumb-item"><a href="/properties?district_id={{ property.district_id }}">{{ property.district_name }}</a></li>
+      <li class="breadcrumb-item active">{{ property.title|truncate(40) }}</li>
+    </ol>
+  </nav>
+
+  <div class="row">
+    <div class="col-lg-8">
+      <!-- Gallery -->
+      <div class="property-gallery">
+        <div id="propertyCarousel" class="carousel slide" data-bs-ride="carousel">
+          <div class="carousel-inner">
+            {% if property.images and property.images|length > 0 %}
+              {% for img in property.images %}
+              <div class="carousel-item {{ 'active' if loop.first }}">
+                <img src="{{ img.url if img.url else '/images/no-image.jpg' }}" class="d-block w-100 main-image" alt="{{ property.title }}">
+              </div>
+              {% endfor %}
+            {% else %}
+            <div class="carousel-item active">
+              <div class="main-image bg-light d-flex align-items-center justify-content-center">
+                <i class="bi bi-house" style="font-size:5rem;color:#ccc;"></i>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+          {% if property.images and property.images|length > 1 %}
+          <button class="carousel-control-prev" type="button" data-bs-target="#propertyCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#propertyCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+          </button>
+          {% endif %}
+        </div>
+        {% if property.images and property.images|length > 1 %}
+        <div class="gallery-thumbs mt-2">
+          {% for img in property.images %}
+          <img src="{{ img.url }}" class="{{ 'active' if loop.first }}" onclick="document.querySelector('#propertyCarousel .carousel-inner .carousel-item.active').classList.remove('active'); document.querySelectorAll('#propertyCarousel .carousel-inner .carousel-item')[{{ loop.index0 }}].classList.add('active');" alt="">
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Property Details -->
+      <div class="property-detail-header">
+        <div class="d-flex justify-content-between align-items-start flex-wrap">
+          <div>
+            <h1>{{ property.title }}</h1>
+            <p class="text-muted mb-2">
+              <i class="bi bi-geo-alt text-danger"></i> 
+              {{ property.village_name }}, {{ property.tehsil_name }}, {{ property.district_name }}, {{ property.state_name }}
+            </p>
+          </div>
+          <div class="text-end">
+            <div class="property-price-tag">₹ {{ "{:,.0f}".format(property.price) }}</div>
+            {% if property.price_per_sqft %}
+            <div class="price-per-sqft">₹ {{ "{:,.0f}".format(property.price_per_sqft) }}/sq.ft</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mb-3">
+          <span class="badge {{ 'badge-sale' if property.listing_type == 'sell' else 'badge-rent' }} fs-6">
+            {{ property.listing_type|upper }}
+          </span>
+          <span class="badge bg-secondary fs-6">{{ property.property_type|replace('_', ' ')|title }}</span>
+          {% if property.is_featured %}
+          <span class="badge badge-featured fs-6">FEATURED</span>
+          {% endif %}
+          {% if property.status == 'available' %}
+          <span class="badge bg-success fs-6">AVAILABLE</span>
+          {% endif %}
+        </div>
+
+        <div class="property-quick-stats">
+          {% if property.bedrooms > 0 %}
+          <div class="property-quick-stat">
+            <div class="stat-value">{{ property.bedrooms }}</div>
+            <div class="stat-label">BHK</div>
+          </div>
+          {% endif %}
+          {% if property.bathrooms > 0 %}
+          <div class="property-quick-stat">
+            <div class="stat-value">{{ property.bathrooms }}</div>
+            <div class="stat-label">Bathrooms</div>
+          </div>
+          {% endif %}
+          <div class="property-quick-stat">
+            <div class="stat-value">{{ property.total_area }}</div>
+            <div class="stat-label">{{ property.area_unit|upper }}</div>
+          </div>
+          {% if property.built_up_area %}
+          <div class="property-quick-stat">
+            <div class="stat-value">{{ property.built_up_area }}</div>
+            <div class="stat-label">Built-up</div>
+          </div>
+          {% endif %}
+          {% if property.furnishing_status %}
+          <div class="property-quick-stat">
+            <div class="stat-value">{{ property.furnishing_status|replace('_', ' ')|title }}</div>
+            <div class="stat-label">Furnishing</div>
+          </div>
+          {% endif %}
+          {% if property.balconies > 0 %}
+          <div class="property-quick-stat">
+            <div class="stat-value">{{ property.balconies }}</div>
+            <div class="stat-label">Balconies</div>
+          </div>
+          {% endif %}
+          {% if property.parking %}
+          <div class="property-quick-stat">
+            <div class="stat-value">{{ property.parking }}</div>
+            <div class="stat-label">Parking</div>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Contact Buttons -->
+        <div class="contact-buttons">
+          <a href="tel:{{ property.owner_phone }}" class="btn btn-call">
+            <i class="bi bi-telephone-fill"></i> Call Seller
+          </a>
+          <a href="https://wa.me/91{{ property.owner_phone }}?text=Hi, I am interested in {{ property.title }}" target="_blank" class="btn btn-whatsapp">
+            <i class="bi bi-whatsapp"></i> WhatsApp
+          </a>
+          <button class="btn btn-chat" onclick="startChat('{{ property.id }}', '{{ property.owner_name }}')">
+            <i class="bi bi-chat-dots-fill"></i> Chat
+          </button>
+          <button class="btn btn-favorite" onclick="toggleFavorite('{{ property.id }}')" id="favBtn">
+            <i class="bi bi-heart-fill"></i> <span id="favText">Save</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="property-detail-header">
+        <h5 class="fw-bold mb-3"><i class="bi bi-file-text"></i> Description</h5>
+        <div class="property-description">
+          {{ property.description or 'No description provided.' }}
+        </div>
+      </div>
+
+      <!-- Amenities -->
+      {% if property.amenities and property.amenities|length > 0 %}
+      <div class="property-detail-header">
+        <h5 class="fw-bold mb-3"><i class="bi bi-grid-3x3-gap-fill"></i> Amenities</h5>
+        <div class="amenities-grid">
+          {% for amenity in property.amenities %}
+          <div class="amenity-item">
+            <i class="bi bi-check-circle-fill"></i>
+            {{ amenity.name if amenity.name is string else amenity }}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Additional Details -->
+      <div class="property-detail-header">
+        <h5 class="fw-bold mb-3"><i class="bi bi-info-circle"></i> Additional Details</h5>
+        <div class="row g-3">
+          {% if property.year_built %}
+          <div class="col-md-4">
+            <small class="text-muted">Year Built</small>
+            <div class="fw-bold">{{ property.year_built }}</div>
+          </div>
+          {% endif %}
+          {% if property.possession_date %}
+          <div class="col-md-4">
+            <small class="text-muted">Possession</small>
+            <div class="fw-bold">{{ property.possession_date }}</div>
+          </div>
+          {% endif %}
+          {% if property.total_floors %}
+          <div class="col-md-4">
+            <small class="text-muted">Total Floors</small>
+            <div class="fw-bold">{{ property.total_floors }}</div>
+          </div>
+          {% endif %}
+          {% if property.floor %}
+          <div class="col-md-4">
+            <small class="text-muted">Floor</small>
+            <div class="fw-bold">{{ property.floor }}</div>
+          </div>
+          {% endif %}
+          <div class="col-md-4">
+            <small class="text-muted">Property ID</small>
+            <div class="fw-bold">{{ property.id|truncate(8, True, '') }}</div>
+          </div>
+          <div class="col-md-4">
+            <small class="text-muted">Views</small>
+            <div class="fw-bold">{{ property.view_count or 0 }}</div>
+          </div>
+          <div class="col-md-4">
+            <small class="text-muted">Posted on</small>
+            <div class="fw-bold">{{ property.created_at|date('d M Y') if property.created_at else 'N/A' }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Map -->
+      {% if property.latitude and property.longitude %}
+      <div class="property-detail-header">
+        <h5 class="fw-bold mb-3"><i class="bi bi-geo-alt-fill"></i> Location Map</h5>
+        <div class="map-container" id="propertyMap"></div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      <!-- Owner Card -->
+      <div class="owner-card">
+        <div class="owner-avatar">{{ property.owner_name[0] if property.owner_name else 'O' }}</div>
+        <div class="owner-name">{{ property.owner_name or 'Property Owner' }}</div>
+        <div class="owner-role">
+          {% if property.is_owner %}Owner{% else %}Agent{% endif %}
+        </div>
+        <hr>
+        <div class="mb-3">
+          <small class="text-muted d-block"><i class="bi bi-telephone"></i> Phone</small>
+          <a href="tel:{{ property.owner_phone }}" class="text-decoration-none fw-bold">{{ property.owner_phone }}</a>
+        </div>
+        {% if property.owner_email %}
+        <div class="mb-3">
+          <small class="text-muted d-block"><i class="bi bi-envelope"></i> Email</small>
+          <span>{{ property.owner_email }}</span>
+        </div>
+        {% endif %}
+        <div class="d-grid gap-2">
+          <a href="tel:{{ property.owner_phone }}" class="btn btn-success">
+            <i class="bi bi-telephone-fill"></i> Call Now
+          </a>
+          <a href="https://wa.me/91{{ property.owner_phone }}" target="_blank" class="btn btn-success" style="background:#25D366;border-color:#25D366;">
+            <i class="bi bi-whatsapp"></i> WhatsApp
+          </a>
+          <button class="btn btn-primary" onclick="scheduleVisit('{{ property.id }}')">
+            <i class="bi bi-calendar-check"></i> Schedule Visit
+          </button>
+        </div>
+      </div>
+
+      <!-- Report Property -->
+      <div class="card mt-3">
+        <div class="card-body">
+          <h6 class="fw-bold"><i class="bi bi-flag"></i> Report this Property</h6>
+          <p class="text-muted small">Found something wrong? Let us know.</p>
+          <button class="btn btn-outline-danger btn-sm w-100" onclick="reportProperty('{{ property.id }}')">
+            <i class="bi bi-flag-fill"></i> Report
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Schedule Visit Modal -->
+<div class="modal fade" id="visitModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Schedule a Visit</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="visitForm">
+          <input type="hidden" id="visitPropertyId" value="{{ property.id }}">
+          <div class="mb-3">
+            <label class="form-label">Preferred Date</label>
+            <input type="date" class="form-control" id="visitDate" required min="{{ now|date('Y-m-d') }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Preferred Time</label>
+            <input type="time" class="form-control" id="visitTime" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Message (Optional)</label>
+            <textarea class="form-control" id="visitMessage" rows="2" placeholder="Any specific questions?"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick="submitVisit()">Schedule Visit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Report Modal -->
+<div class="modal fade" id="reportModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Report Property</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <input type="hidden" id="reportPropertyId" value="{{ property.id }}">
+          <div class="mb-3">
+            <label class="form-label">Reason</label>
+            <select class="form-select" id="reportReason" required>
+              <option value="">Select reason</option>
+              <option value="spam">Spam</option>
+              <option value="fake">Fake Listing</option>
+              <option value="wrong_info">Wrong Information</option>
+              <option value="outdated">Outdated</option>
+              <option value="fraud">Fraud / Scam</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" id="reportDescription" rows="3"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-danger" onclick="submitReport()">Submit Report</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// Initialize map
+{% if property.latitude and property.longitude %}
+document.addEventListener('DOMContentLoaded', function() {
+  const map = L.map('propertyMap').setView([{{ property.latitude }}, {{ property.longitude }}], 15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+  L.marker([{{ property.latitude }}, {{ property.longitude }}]).addTo(map)
+    .bindPopup('<b>{{ property.title }}</b><br>{{ property.village_name }}, {{ property.tehsil_name }}');
+});
+{% endif %}
+
+// Toggle favorite
+async function toggleFavorite(propertyId) {
+  const btn = document.getElementById('favBtn');
+  const text = document.getElementById('favText');
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      window.location.href = '/auth/login';
+      return;
+    }
+    if (btn.classList.contains('active')) {
+      await fetch(`/api/favorites/${propertyId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+      btn.classList.remove('active');
+      text.textContent = 'Save';
+    } else {
+      await fetch('/api/favorites', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ property_id: propertyId })
+      });
+      btn.classList.add('active');
+      text.textContent = 'Saved';
+    }
+  } catch (err) {
+    showToast('Please login to save favorites', 'error');
+  }
+}
+
+// Start chat
+function startChat(propertyId, ownerName) {
+  const token = localStorage.getItem('authToken');
+  if (!token) { window.location.href = '/auth/login'; return; }
+  window.location.href = `/chat?property=${propertyId}`;
+}
+
+// Schedule visit
+function scheduleVisit(propertyId) {
+  const token = localStorage.getItem('authToken');
+  if (!token) { window.location.href = '/auth/login'; return; }
+  new bootstrap.Modal(document.getElementById('visitModal')).show();
+}
+
+async function submitVisit() {
+  const token = localStorage.getItem('authToken');
+  if (!token) { window.location.href = '/auth/login'; return; }
+  
+  const data = {
+    property_id: document.getElementById('visitPropertyId').value,
+    visit_date: document.getElementById('visitDate').value,
+    visit_time: document.getElementById('visitTime').value,
+    visitor_message: document.getElementById('visitMessage').value
+  };
+
+  try {
+    const res = await fetch('/api/visits', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (result.success) {
+      showToast('Visit scheduled successfully!', 'success');
+      bootstrap.Modal.getInstance(document.getElementById('visitModal')).hide();
+    } else {
+      showToast(result.error || 'Failed to schedule visit', 'error');
+    }
+  } catch (err) {
+    showToast('Failed to schedule visit', 'error');
+  }
+}
+
+// Report property
+function reportProperty(propertyId) {
+  new bootstrap.Modal(document.getElementById('reportModal')).show();
+}
+
+async function submitReport() {
+  const data = {
+    property_id: document.getElementById('reportPropertyId').value,
+    report_reason: document.getElementById('reportReason').value,
+    description: document.getElementById('reportDescription').value
+  };
+
+  try {
+    const res = await fetch('/api/reports', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (result.success) {
+      showToast('Report submitted. We will review it.', 'success');
+      bootstrap.Modal.getInstance(document.getElementById('reportModal')).hide();
+    } else {
+      showToast(result.error || 'Failed to submit report', 'error');
+    }
+  } catch (err) {
+    showToast('Failed to submit report', 'error');
+  }
+}
+
+// Check if property is favorited
+document.addEventListener('DOMContentLoaded', async function() {
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    try {
+      const res = await fetch('/api/favorites', { headers: { 'Authorization': `Bearer ${token}` } });
+      const result = await res.json();
+      if (result.success && result.data) {
+        const isFav = result.data.some(f => f.property_id === '{{ property.id }}');
+        if (isFav) {
+          document.getElementById('favBtn').classList.add('active');
+          document.getElementById('favText').textContent = 'Saved';
+        }
+      }
+    } catch (err) {}
+  }
+});
+</script>
+{% endblock %}

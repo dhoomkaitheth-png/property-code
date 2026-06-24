@@ -1,0 +1,147 @@
+-- =============================================
+-- Uttarakhand Real Estate Platform
+-- Complete Database Migration
+-- Run in order: schema.sql -> schema_v2.sql -> schema_v3.sql -> seed.sql
+-- =============================================
+
+-- Step 1: Create database (run separately as superuser)
+-- CREATE DATABASE property_portal;
+
+-- Step 2: Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Step 3: Run all schema files in order
+-- \i database/schema.sql
+-- \i database/schema_v2.sql  
+-- \i database/schema_v3.sql
+
+-- Step 4: Seed data
+-- \i database/seed.sql
+
+-- =============================================
+-- COMPLETE API ENDPOINTS REFERENCE
+-- =============================================
+--
+-- AUTHENTICATION
+-- POST   /api/auth/register          - Register new user
+-- POST   /api/auth/login             - Login user
+-- POST   /api/auth/logout            - Logout user
+-- GET    /api/auth/profile           - Get user profile
+-- PUT    /api/auth/profile           - Update profile
+-- PUT    /api/auth/fcm-token         - Update FCM token
+--
+-- OTP
+-- POST   /api/otp/send               - Send OTP to mobile
+-- POST   /api/otp/verify             - Verify OTP
+-- POST   /api/otp/verify-login       - OTP login/register
+--
+-- PASSWORD RESET
+-- POST   /api/password-reset/request - Request password reset
+-- GET    /api/password-reset/verify/:token - Verify reset token
+-- POST   /api/password-reset/reset   - Reset password with token
+-- POST   /api/password-reset/change  - Change password (auth)
+--
+-- PROPERTIES
+-- GET    /api/properties             - List properties (filtered)
+-- GET    /api/properties/featured    - Featured properties
+-- GET    /api/properties/stats       - Property statistics
+-- GET    /api/properties/:id         - Single property detail
+-- POST   /api/properties             - Create property
+-- PUT    /api/properties/:id         - Update property
+-- DELETE /api/properties/:id         - Soft delete property
+-- POST   /api/properties/:id/images  - Upload property images
+--
+-- LOCATIONS
+-- GET    /api/locations/districts    - All districts
+-- GET    /api/locations/tehsils/:district_id - Tehsils by district
+-- GET    /api/locations/villages/:tehsil_id  - Villages by tehsil
+-- GET    /api/locations/search       - Search locations
+--
+-- FAVORITES
+-- GET    /api/favorites              - User's favorites
+-- POST   /api/favorites              - Add to favorites
+-- DELETE /api/favorites/:property_id - Remove from favorites
+--
+-- LEADS
+-- GET    /api/leads                  - User's leads
+-- POST   /api/leads                  - Create lead
+-- PUT    /api/leads/:id/status       - Update lead status
+--
+-- CHAT
+-- GET    /api/chat/conversations     - User's conversations
+-- GET    /api/chat/messages/:userId  - Messages with user
+-- POST   /api/chat/send              - Send message
+-- PUT    /api/chat/read/:messageId   - Mark as read
+--
+-- NOTIFICATIONS
+-- GET    /api/notifications          - User's notifications
+-- PUT    /api/notifications/:id/read - Mark notification read
+-- PUT    /api/notifications/read-all - Mark all read
+--
+-- PAYMENTS
+-- GET    /api/payments/plans         - Premium plans
+-- POST   /api/payments/create-order  - Create Razorpay order
+-- POST   /api/payments/verify        - Verify payment
+-- GET    /api/payments/subscriptions - User subscriptions
+-- GET    /api/payments/subscriptions/active - Active subscription
+-- GET    /api/payments/history       - Payment history
+--
+-- BLOGS
+-- GET    /api/blogs                  - Published blogs
+-- GET    /api/blogs/featured         - Featured blogs
+-- GET    /api/blogs/categories       - Blog categories
+-- GET    /api/blogs/:slug            - Single blog
+--
+-- ANALYTICS
+-- GET    /api/analytics/admin        - Admin dashboard stats
+-- GET    /api/analytics/districts    - District-wise stats
+-- GET    /api/analytics/trends       - Monthly trends
+-- GET    /api/analytics/seller       - Seller dashboard stats
+--
+-- VISITS
+-- POST   /api/visits                 - Schedule visit
+-- GET    /api/visits/my-visits       - My scheduled visits
+-- GET    /api/visits/property/:id    - Property visits
+-- PUT    /api/visits/:id/status      - Update visit status
+--
+-- REPORTS
+-- POST   /api/reports               - Report property
+-- GET    /api/reports                - Admin: all reports
+-- PUT    /api/reports/:id/status     - Admin: update report
+--
+-- CONTACT
+-- POST   /api/contact-enquiries      - Submit enquiry
+-- GET    /api/contact-enquiries       - Admin: all enquiries
+--
+-- ADMIN
+-- GET    /api/admin/users            - Admin: users list
+-- GET    /api/admin/dashboard        - Admin: dashboard stats
+-- PUT    /api/admin/users/:id/toggle - Admin: toggle user status
+-- POST   /api/admin/properties/import - Admin: import properties
+-- GET    /api/admin/properties/export - Admin: export properties
+--
+-- HEALTH
+-- GET    /api/health                 - API health check
+--
+-- WEB PAGES
+-- GET    /                           - Home page
+-- GET    /properties                 - Property listings
+-- GET    /properties/:id             - Property detail
+-- GET    /auth/login                 - Login page
+-- GET    /auth/register              - Register page
+-- GET    /auth/forgot-password       - Forgot password page
+-- GET    /dashboard                  - User dashboard
+-- GET    /dashboard/my-properties    - My properties
+-- GET    /dashboard/my-properties/add - Add property
+-- GET    /dashboard/leads            - My leads
+-- GET    /dashboard/favorites        - My favorites
+-- GET    /dashboard/messages         - Messages
+-- GET    /dashboard/subscriptions    - Plans & subscriptions
+-- GET    /admin                      - Admin panel
+-- GET    /admin/users                - Admin: users
+-- GET    /admin/properties           - Admin: properties
+-- GET    /admin/blogs                - Admin: blogs
+-- GET    /chat                       - Web chat interface
+-- GET    /blogs                      - Blog listing
+-- GET    /blogs/:slug                - Blog detail
+-- GET    /contact                    - Contact page

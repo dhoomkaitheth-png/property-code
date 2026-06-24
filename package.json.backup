@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "backend": "cd backend && npm run dev",
+    "mobile": "cd mobile && npx expo start"
+  },
+  "private": true
+}

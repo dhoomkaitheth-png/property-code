@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof title !== 'undefined' && title ? title : 'Uttarakhand Real Estate' %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="bi bi-house-heart-fill"></i> Uttarakhand Real Estate</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="/"><i class="bi bi-house"></i> Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/properties"><i class="bi bi-list-ul"></i> Properties</a></li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="/properties/add"><i class="bi bi-plus-circle"></i> Add Property</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/admin"><i class="bi bi-shield-lock"></i> Admin</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero-section">
+        <div class="container">
+            <h1 class="fade-in">Find Your Dream Property in Uttarakhand</h1>
+            <p class="fade-in">Discover homes, plots, and commercial properties across all 13 districts of Uttarakhand</p>
+            <div class="search-card fade-in">
+                <form action="/properties" method="GET" class="row g-3">
+                    <div class="col-md-4">
+                        <select name="district_id" class="form-select" id="searchDistrict">
+                            <option value="">All Districts</option>
+                            <% if (typeof districts !== 'undefined' && districts) { districts.forEach(function(d) { %>
+                            <option value="<%= d.id %>"><%= d.district_name %></option>
+                            <% }); } %>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="listing_type" class="form-select">
+                            <option value="">All Listings</option>
+                            <option value="sell">For Sale</option>
+                            <option value="rent">For Rent</option>
+                            <option value="lease">For Lease</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="property_type" class="form-select">
+                            <option value="">All Types</option>
+                            <option value="residential_house">House</option>
+                            <option value="apartment_flat">Apartment</option>
+                            <option value="land_plot">Land/Plot</option>
+                            <option value="commercial_shop">Shop</option>
+                            <option value="villa">Villa</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Search</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <section class="stats-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3 col-6"><div class="stat-item"><div class="stat-number"><%= typeof stats !== 'undefined' && stats ? (stats.total_properties || 0) : 0 %></div><div class="stat-label">Properties Listed</div></div></div>
+                <div class="col-md-3 col-6"><div class="stat-item"><div class="stat-number"><%= typeof stats !== 'undefined' && stats ? (stats.total_districts || 13) : 13 %></div><div class="stat-label">Districts Covered</div></div></div>
+                <div class="col-md-3 col-6"><div class="stat-item"><div class="stat-number"><%= typeof stats !== 'undefined' && stats ? (stats.for_sale || 0) : 0 %></div><div class="stat-label">For Sale</div></div></div>
+                <div class="col-md-3 col-6"><div class="stat-item"><div class="stat-number"><%= typeof stats !== 'undefined' && stats ? (stats.for_rent || 0) : 0 %></div><div class="stat-label">For Rent</div></div></div>
+            </div>
+        </div>
+    </section>
+
+    <% if (typeof featured_properties !== 'undefined' && featured_properties && featured_properties.length > 0) { %>
+    <section class="py-5">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold"><i class="bi bi-star-fill text-warning"></i> Featured Properties</h2>
+                <a href="/properties" class="btn btn-outline-primary">View All <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="row g-4">
+                <% featured_properties.forEach(function(p) { %>
+                <div class="col-lg-4 col-md-6">
+                    <div class="property-card">
+                        <div class="position-relative">
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height:200px;"><i class="bi bi-house" style="font-size:3rem;color:#ccc;"></i></div>
+                            <span class="position-absolute top-0 start-0 m-2 badge <%= p.listing_type === 'sell' ? 'badge-sale' : 'badge-rent' %>"><%= p.listing_type ? p.listing_type.toUpperCase() : 'SALE' %></span>
+                            <% if (p.is_featured) { %><span class="position-absolute top-0 end-0 m-2 badge badge-featured">FEATURED</span><% } %>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title text-truncate"><%= p.title || p.property_type %></h5>
+                            <p class="location"><i class="bi bi-geo-alt"></i> <%= p.village_name %>, <%= p.tehsil_name %>, <%= p.district_name %></p>
+                            <div class="price">₹ <%= typeof formatNumber === 'function' ? formatNumber(p.price) : p.price %></div>
+                            <div class="features">
+                                <% if (p.bedrooms > 0) { %><span><i class="bi bi-door-open"></i> <%= p.bedrooms %> BHK</span><% } %>
+                                <% if (p.bathrooms > 0) { %><span><i class="bi bi-droplet"></i> <%= p.bathrooms %></span><% } %>
+                                <span><i class="bi bi-arrows-angle-expand"></i> <%= p.total_area %> <%= p.area_unit %></span>
+                            </div>
+                            <a href="/properties/<%= p.id %>" class="btn btn-sm btn-outline-primary mt-3 w-100">View Details</a>
+                        </div>
+                    </div>
+                </div>
+                <% }); %>
+            </div>
+        </div>
+    </section>
+    <% } %>
+
+    <section class="py-5 bg-white">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold"><i class="bi bi-clock-history"></i> Recent Properties</h2>
+                <a href="/properties" class="btn btn-outline-primary">View All <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="row g-4">
+                <% if (typeof recent_properties !== 'undefined' && recent_properties) { recent_properties.forEach(function(p) { %>
+                <div class="col-lg-4 col-md-6">
+                    <div class="property-card">
+                        <div class="position-relative">
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height:200px;"><i class="bi bi-house" style="font-size:3rem;color:#ccc;"></i></div>
+                            <span class="position-absolute top-0 start-0 m-2 badge <%= p.listing_type === 'sell' ? 'badge-sale' : 'badge-rent' %>"><%= p.listing_type ? p.listing_type.toUpperCase() : 'SALE' %></span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title text-truncate"><%= p.title || p.property_type %></h5>
+                            <p class="location"><i class="bi bi-geo-alt"></i> <%= p.village_name %>, <%= p.tehsil_name %>, <%= p.district_name %></p>
+                            <div class="price">₹ <%= typeof formatNumber === 'function' ? formatNumber(p.price) : p.price %></div>
+                            <div class="features">
+                                <% if (p.bedrooms > 0) { %><span><i class="bi bi-door-open"></i> <%= p.bedrooms %> BHK</span><% } %>
+                                <% if (p.bathrooms > 0) { %><span><i class="bi bi-droplet"></i> <%= p.bathrooms %></span><% } %>
+                                <span><i class="bi bi-arrows-angle-expand"></i> <%= p.total_area %> <%= p.area_unit %></span>
+                            </div>
+                            <a href="/properties/<%= p.id %>" class="btn btn-sm btn-outline-primary mt-3 w-100">View Details</a>
+                        </div>
+                    </div>
+                </div>
+                <% }); } %>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-5">
+        <div class="container">
+            <h2 class="fw-bold text-center mb-5"><i class="bi bi-geo-alt-fill text-primary"></i> Explore Districts of Uttarakhand</h2>
+            <div class="row g-3">
+                <% if (typeof districts !== 'undefined' && districts) { districts.forEach(function(d) { %>
+                <div class="col-lg-2 col-md-3 col-4">
+                    <a href="/properties?district_id=<%= d.id %>" class="text-decoration-none">
+                        <div class="district-card"><div class="district-icon">🏔️</div><div class="district-name"><%= d.district_name %></div></div>
+                    </a>
+                </div>
+                <% }); } %>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5><i class="bi bi-house-heart-fill"></i> Uttarakhand Real Estate</h5>
+                    <p class="text-muted">Your trusted platform for property listings across Uttarakhand. Find your dream home in the Land of Gods.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/" class="text-muted text-decoration-none">Home</a></li>
+                        <li><a href="/properties" class="text-muted text-decoration-none">Browse Properties</a></li>
+                        <li><a href="/properties/add" class="text-muted text-decoration-none">Post Property</a></li>
+                        <li><a href="/admin" class="text-muted text-decoration-none">Admin Panel</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Contact</h5>
+                    <ul class="list-unstyled text-muted">
+                        <li><i class="bi bi-geo-alt"></i> Uttarakhand, India</li>
+                        <li><i class="bi bi-envelope"></i> info@uttarakhandrealestate.com</li>
+                        <li><i class="bi bi-phone"></i> +91-XXXXXXXXXX</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="border-secondary">
+            <div class="text-center text-muted"><small>&copy; 2026 Uttarakhand Real Estate. All rights reserved.</small></div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/main.js"></script>
+</body>
+</html>

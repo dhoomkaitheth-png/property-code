@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Browse Properties - Uttarakhand Real Estate{% endblock %}
+{% block content %}
+
+<section class="py-4">
+    <div class="container">
+        <div class="row">
+            <!-- Filters Sidebar -->
+            <div class="col-lg-3 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold mb-3"><i class="bi bi-funnel"></i> Filters</h5>
+                        <form action="/properties" method="GET">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Search</label>
+                                <input type="text" name="search" class="form-control" placeholder="Search properties..." value="{{ query.search or '' }}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">District</label>
+                                <select name="district_id" class="form-select">
+                                    <option value="">All Districts</option>
+                                    {% for d in districts %}
+                                    <option value="{{ d.id }}" {{ 'selected' if query.district_id == d.id|string }}>{{ d.district_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Property Type</label>
+                                <select name="property_type" class="form-select">
+                                    <option value="">All Types</option>
+                                    <option value="residential_house" {{ 'selected' if query.property_type == 'residential_house' }}>House</option>
+                                    <option value="apartment_flat" {{ 'selected' if query.property_type == 'apartment_flat' }}>Apartment</option>
+                                    <option value="land_plot" {{ 'selected' if query.property_type == 'land_plot' }}>Land/Plot</option>
+                                    <option value="commercial_shop" {{ 'selected' if query.property_type == 'commercial_shop' }}>Shop</option>
+                                    <option value="villa" {{ 'selected' if query.property_type == 'villa' }}>Villa</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Listing Type</label>
+                                <select name="listing_type" class="form-select">
+                                    <option value="">All</option>
+                                    <option value="sell" {{ 'selected' if query.listing_type == 'sell' }}>For Sale</option>
+                                    <option value="rent" {{ 'selected' if query.listing_type == 'rent' }}>For Rent</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Min Price (₹)</label>
+                                <input type="number" name="min_price" class="form-control" placeholder="Min" value="{{ query.min_price or '' }}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Max Price (₹)</label>
+                                <input type="number" name="max_price" class="form-control" placeholder="Max" value="{{ query.max_price or '' }}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Bedrooms</label>
+                                <select name="bedrooms" class="form-select">
+                                    <option value="">Any</option>
+                                    <option value="1" {{ 'selected' if query.bedrooms == '1' }}>1 BHK</option>
+                                    <option value="2" {{ 'selected' if query.bedrooms == '2' }}>2 BHK</option>
+                                    <option value="3" {{ 'selected' if query.bedrooms == '3' }}>3 BHK</option>
+                                    <option value="4" {{ 'selected' if query.bedrooms == '4' }}>4+ BHK</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Apply Filters</button>
+                            <a href="/properties" class="btn btn-outline-secondary w-100 mt-2">Clear Filters</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Properties Grid -->
+            <div class="col-lg-9">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold mb-0">{{ total }} Properties Found</h4>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-muted small">Sort:</span>
+                        <select class="form-select form-select-sm" style="width:auto;" onchange="window.location.href=this.value">
+                            <option value="?sort_by=created_at&sort_order=DESC{{ '&'+query|urlencode if query }}" {{ 'selected' if query.sort_by == 'created_at' or not query.sort_by }}>Newest</option>
+                            <option value="?sort_by=price&sort_order=ASC{{ '&'+query|urlencode if query }}" {{ 'selected' if query.sort_by == 'price' and query.sort_order == 'ASC' }}>Price: Low</option>
+                            <option value="?sort_by=price&sort_order=DESC{{ '&'+query|urlencode if query }}" {{ 'selected' if query.sort_by == 'price' and query.sort_order == 'DESC' }}>Price: High</option>
+                        </select>
+                    </div>
+                </div>
+
+                {% if properties %}
+                <div class="row g-4">
+                    {% for property in properties %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="property-card">
+                            <div class="position-relative">
+                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height:180px;">
+                                    <i class="bi bi-house" style="font-size:3rem;color:#ccc;"></i>
+                                </div>
+                                <span class="position-absolute top-0 start-0 m-2 badge {{ 'badge-sale' if property.listing_type == 'sell' else 'badge-rent' }}">
+                                    {{ property.listing_type|upper }}
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <h6 class="card-title text-truncate">{{ property.title or property.property_type|replace('_', ' ')|title }}</h6>
+                                <p class="location small"><i class="bi bi-geo-alt"></i> {{ property.village_name }}, {{ property.tehsil_name }}</p>
+                                <div class="price">₹ {{ "{:,.0f}".format(property.price) }}</div>
+                                <div class="features">
+                                    {% if property.bedrooms > 0 %}<span class="feature">{{ property.bedrooms }} BHK</span>{% endif %}
+                                    <span class="feature">{{ property.total_area }} {{ property.area_unit }}</span>
+                                </div>
+                                <a href="/properties/{{ property.id }}" class="btn btn-sm btn-outline-primary mt-2 w-100">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if totalPages > 1 %}
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page > 1 %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page-1 }}{% for key, value in query.items() %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Previous</a></li>
+                        {% endif %}
+                        {% for p in range(1, totalPages + 1) %}
+                            {% if p >= page - 2 and p <= page + 2 %}
+                            <li class="page-item {{ 'active' if p == page }}"><a class="page-link" href="?page={{ p }}{% for key, value in query.items() %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ p }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                        {% if page < totalPages %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page+1 }}{% for key, value in query.items() %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-search" style="font-size:3rem;color:#ccc;"></i>
+                    <h5 class="mt-3 text-muted">No properties found</h5>
+                    <p class="text-muted">Try adjusting your search filters</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block title %}Uttarakhand Real Estate - Find Properties in Uttarakhand{% endblock %}
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <h1 class="fade-in">Find Your Dream Property in Uttarakhand</h1>
+        <p class="fade-in">Discover homes, plots, and commercial properties across all 13 districts of Uttarakhand</p>
+        
+        <div class="search-card fade-in">
+            <form action="/properties" method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <select name="district_id" class="form-select" id="searchDistrict">
+                        <option value="">All Districts</option>
+                        {% for district in districts %}
+                        <option value="{{ district.id }}">{{ district.district_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="listing_type" class="form-select">
+                        <option value="">All Listings</option>
+                        <option value="sell">For Sale</option>
+                        <option value="rent">For Rent</option>
+                        <option value="lease">For Lease</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="property_type" class="form-select">
+                        <option value="">All Types</option>
+                        <option value="residential_house">House</option>
+                        <option value="apartment_flat">Apartment</option>
+                        <option value="land_plot">Land/Plot</option>
+                        <option value="commercial_shop">Shop</option>
+                        <option value="villa">Villa</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <div class="stat-number">{{ stats.total_properties or 0 }}</div>
+                    <div class="stat-label">Properties Listed</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <div class="stat-number">{{ stats.total_districts or 13 }}</div>
+                    <div class="stat-label">Districts Covered</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <div class="stat-number">{{ stats.for_sale or 0 }}</div>
+                    <div class="stat-label">For Sale</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <div class="stat-number">{{ stats.for_rent or 0 }}</div>
+                    <div class="stat-label">For Rent</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Properties -->
+{% if featured_properties %}
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold"><i class="bi bi-star-fill text-warning"></i> Featured Properties</h2>
+            <a href="/properties" class="btn btn-outline-primary">View All <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="row g-4">
+            {% for property in featured_properties %}
+            <div class="col-lg-4 col-md-6">
+                <div class="property-card">
+                    <div class="position-relative">
+                        {% if property.images and property.images|length > 0 %}
+                        <img src="{{ property.images[0].url if property.images is mapping else '/images/no-image.jpg' }}" 
+                             class="card-img-top" alt="{{ property.title }}">
+                        {% else %}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height:200px;">
+                            <i class="bi bi-house" style="font-size:3rem;color:#ccc;"></i>
+                        </div>
+                        {% endif %}
+                        <span class="position-absolute top-0 start-0 m-2 badge {{ 'badge-sale' if property.listing_type == 'sell' else 'badge-rent' }}">
+                            {{ property.listing_type|upper }}
+                        </span>
+                        {% if property.is_featured %}
+                        <span class="position-absolute top-0 end-0 m-2 badge badge-featured">FEATURED</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title text-truncate">{{ property.title or property.property_type|replace('_', ' ')|title }}</h5>
+                        <p class="location"><i class="bi bi-geo-alt"></i> {{ property.village_name }}, {{ property.tehsil_name }}, {{ property.district_name }}</p>
+                        <div class="price">₹ {{ "{:,.0f}".format(property.price) }}</div>
+                        <div class="features">
+                            {% if property.bedrooms > 0 %}<span class="feature"><i class="bi bi-door-open"></i> {{ property.bedrooms }} BHK</span>{% endif %}
+                            {% if property.bathrooms > 0 %}<span class="feature"><i class="bi bi-droplet"></i> {{ property.bathrooms }}</span>{% endif %}
+                            <span class="feature"><i class="bi bi-arrows-angle-expand"></i> {{ property.total_area }} {{ property.area_unit }}</span>
+                        </div>
+                        <a href="/properties/{{ property.id }}" class="btn btn-sm btn-outline-primary mt-3 w-100">View Details</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Recent Properties -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold"><i class="bi bi-clock-history"></i> Recent Properties</h2>
+            <a href="/properties" class="btn btn-outline-primary">View All <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="row g-4">
+            {% for property in recent_properties %}
+            <div class="col-lg-4 col-md-6">
+                <div class="property-card">
+                    <div class="position-relative">
+                        {% if property.images and property.images|length > 0 %}
+                        <img src="{{ property.images[0].url if property.images is mapping else '/images/no-image.jpg' }}" 
+                             class="card-img-top" alt="{{ property.title }}">
+                        {% else %}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height:200px;">
+                            <i class="bi bi-house" style="font-size:3rem;color:#ccc;"></i>
+                        </div>
+                        {% endif %}
+                        <span class="position-absolute top-0 start-0 m-2 badge {{ 'badge-sale' if property.listing_type == 'sell' else 'badge-rent' }}">
+                            {{ property.listing_type|upper }}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title text-truncate">{{ property.title or property.property_type|replace('_', ' ')|title }}</h5>
+                        <p class="location"><i class="bi bi-geo-alt"></i> {{ property.village_name }}, {{ property.tehsil_name }}, {{ property.district_name }}</p>
+                        <div class="price">₹ {{ "{:,.0f}".format(property.price) }}</div>
+                        <div class="features">
+                            {% if property.bedrooms > 0 %}<span class="feature"><i class="bi bi-door-open"></i> {{ property.bedrooms }} BHK</span>{% endif %}
+                            {% if property.bathrooms > 0 %}<span class="feature"><i class="bi bi-droplet"></i> {{ property.bathrooms }}</span>{% endif %}
+                            <span class="feature"><i class="bi bi-arrows-angle-expand"></i> {{ property.total_area }} {{ property.area_unit }}</span>
+                        </div>
+                        <a href="/properties/{{ property.id }}" class="btn btn-sm btn-outline-primary mt-3 w-100">View Details</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Districts Grid -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="fw-bold text-center mb-5"><i class="bi bi-geo-alt-fill text-primary"></i> Explore Districts of Uttarakhand</h2>
+        <div class="row g-3">
+            {% for district in districts %}
+            <div class="col-lg-2 col-md-3 col-4">
+                <a href="/properties?district_id={{ district.id }}" class="text-decoration-none">
+                    <div class="district-card">
+                        <div class="district-icon">🏔️</div>
+                        <div class="district-name">{{ district.district_name }}</div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}
