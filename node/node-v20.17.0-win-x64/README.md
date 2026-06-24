@@ -882,7 +882,6 @@ external libraries that are available under a variety of licenses.  See
 [LICENSE](https://github.com/nodejs/node/blob/HEAD/LICENSE) for the full
 license text.
 
-
 [Code of Conduct]: https://github.com/nodejs/admin/blob/HEAD/CODE_OF_CONDUCT.md
 [Contributing to the project]: CONTRIBUTING.md
 [Node.js website]: https://nodejs.org/
